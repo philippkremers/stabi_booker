@@ -1,6 +1,6 @@
 <?php
 
-// #############################################################################################################
+// ================================================================================================================
 // IMPORTANT: ADJUST THESE PARAMETERS BEFORE RUNNING THE SCRIPT!
 
 // Please note that Staatsbibliothek only allows to sign up for either afternoon or morning sessions
@@ -12,8 +12,7 @@ $config_email = "beau.brummell@oriel.ox.ac.uk";
 $config_stabi_user_number = "7212345";
 $config_only_mornings = true;
 exit; // FINALLY, REMOVE THIS LINE AFTER YOU ADJUSTED THE PARAMETERS 
-
-// #############################################################################################################
+// ================================================================================================================
 
 // function to check for available slots that match the morning/afternoon preference and return the slot ID
 function new_matching_slot_ID() 
