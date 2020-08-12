@@ -105,7 +105,7 @@ foreach ($users as $user) {
         if(!is_booked_already($slot_id, $user['stabi_user_number'])) {
             book_slot($slot_id, $user['first_name'], $user['second_name'], $user['email'], $user['stabi_user_number']);
             add_slot_ID_to_record($slot_id, $user['stabi_user_number']);
-            add_to_logfile(date('Y-m-d H:i:s').": I booked a slot with $slot_id for ".$user['first_name'].'!');
+            add_to_logfile(date('Y-m-d H:i:s').": I booked a slot with ID $slot_id for ".$user['first_name'].'!');
         }
     }
 }
