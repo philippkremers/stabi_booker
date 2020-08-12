@@ -63,7 +63,7 @@ function book_slot($id, $first_name, $second_name, $email, $stabi_user_number) {
 // function to add slot ID to booking log
 function add_slot_ID_to_record($id, $stabi_user_number) {
     $current_booking_records = file_get_contents('past_bookings_'.$stabi_user_number.'.txt');
-    file_put_contents("past_bookings".$stabi_user_number.".txt", $current_booking_records.",".$id);
+    file_put_contents("past_bookings_".$stabi_user_number.".txt", $current_booking_records.",".$id);
 }
 
 // function to check if slot ID is already booked
