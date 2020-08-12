@@ -14,7 +14,6 @@ $users = array(
 exit; // FINALLY, REMOVE THIS LINE AFTER YOU ADJUSTED THE PARAMETERS 
 
 // #############################################################################################################
-
 // function to check for available slots that match the morning/afternoon preference and return the slot IDs
 function new_matching_slot_IDs($source_landing_page, $config_only_mornings) {
     $matching_IDs = array();
@@ -74,6 +73,17 @@ function is_booked_already($id, $stabi_user_number) {
     return in_array($id, $past_bookings);
 }
 
+// function to add to logfile to track the activities of the booker
+function add_to_logfile($new_line) {
+    // create new logfile if necessary
+    if (!file_exists('logfile.txt')) {
+        touch('logfile.txt');
+    }
+
+    $current_logfile = file_get_contents('logfile.txt');
+    file_put_contents("logfile.txt", $current_logfile.$new_line."\n");
+}
+
 // main program starts
 
 // get entire source code of Staatsbibliothek page
@@ -82,7 +92,7 @@ $source_landing_page = file_get_contents('https://staatsbibliothek-berlin.de/vor
 // loop through all users
 foreach ($users as $user) {
 
-    // create new logfile for user if necessary
+    // create new past booking log for user if necessary
     if (!file_exists('past_bookings_'.$stabi_user_number.'.txt')) {
         touch('past_bookings_'.$stabi_user_number.'.txt');
     }
@@ -95,6 +105,7 @@ foreach ($users as $user) {
         if(!is_booked_already($slot_id, $user['stabi_user_number'])) {
             book_slot($slot_id, $user['first_name'], $user['second_name'], $user['email'], $user['stabi_user_number']);
             add_slot_ID_to_record($slot_id, $user['stabi_user_number']);
+            add_to_logfile(date('Y-m-d H:i:s').": I booked a slot with $slot_id for ".$user['first_name'].'!');
         }
     }
 }
