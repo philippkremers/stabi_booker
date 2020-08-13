@@ -91,10 +91,10 @@ $source_landing_page = file_get_contents('https://staatsbibliothek-berlin.de/vor
 
 // loop through all users
 foreach ($users as $user) {
-
+    
     // create new past booking log for user if necessary
-    if (!file_exists('past_bookings_'.$stabi_user_number.'.txt')) {
-        touch('past_bookings_'.$stabi_user_number.'.txt');
+    if (!file_exists('past_bookings_'.$user['stabi_user_number'].'.txt')) {
+        touch('past_bookings_'.$user['stabi_user_number'].'.txt');
     }
 
     // loop through all slots that fit the preferences
