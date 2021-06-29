@@ -14,12 +14,13 @@ $users = array(
 exit; // FINALLY, REMOVE THIS LINE AFTER YOU ADJUSTED THE PARAMETERS 
 
 // #############################################################################################################
+
 // function to check for available slots that match the morning/afternoon preference and return the slot IDs
 function new_matching_slot_IDs($source_landing_page, $config_only_mornings) {
     $matching_IDs = array();
 
     // select raw HTML string of each bookable slot
-    $relevant_part_source_landing_page = end(explode('rel="">Terminbuchung Lesesaal</a></h3>', $source_landing_page));
+    $relevant_part_source_landing_page = end(explode('rel="">Allgemeiner Lesesaal - Haus Unter den Linden</a></h3>', $source_landing_page));
     $raw_html_of_slots = explode('" class="intern">anmelden</a> (noch ', $relevant_part_source_landing_page);
     array_pop($raw_html_of_slots);
 
@@ -41,7 +42,7 @@ function new_matching_slot_IDs($source_landing_page, $config_only_mornings) {
 
         // if no preference mismatch was detected, add ID number of the available slot returned array
         if ($skip_ID === false) {
-            array_push($matching_IDs, end(explode('vor-ort/oeffnungszeiten/terminbuchung/terminbuchung-lesesaal/buchungsformular-lesesaal/?tx_sbbknowledgeworkshop_pi1%5Binput_event%5D=', $slot_datetime_wrapper)));
+            array_push($matching_IDs, end(explode('vor-ort/oeffnungszeiten/terminbuchung/lesesaele-haus-potsdamer-strasse/buchungsformular-lesesaal/?tx_sbbknowledgeworkshop_pi1%5Binput_event%5D=', $slot_datetime_wrapper)));
         }
     }
 
@@ -91,7 +92,7 @@ $source_landing_page = file_get_contents('https://staatsbibliothek-berlin.de/vor
 
 // loop through all users
 foreach ($users as $user) {
-    
+
     // create new past booking log for user if necessary
     if (!file_exists('past_bookings_'.$user['stabi_user_number'].'.txt')) {
         touch('past_bookings_'.$user['stabi_user_number'].'.txt');
@@ -99,11 +100,12 @@ foreach ($users as $user) {
 
     // loop through all slots that fit the preferences
     $slot_ids = new_matching_slot_IDs($source_landing_page, $user['config_only_mornings']);
+    var_dump($slot_ids);
     foreach($slot_ids as $slot_id) {
 
         // check if the bookable slot is already booked
         if(!is_booked_already($slot_id, $user['stabi_user_number'])) {
-            book_slot($slot_id, $user['first_name'], $user['second_name'], $user['email'], $user['stabi_user_number']);
+            $server_output = book_slot($slot_id, $user['first_name'], $user['second_name'], $user['email'], $user['stabi_user_number']);
             add_slot_ID_to_record($slot_id, $user['stabi_user_number']);
             add_to_logfile(date('Y-m-d H:i:s').": I booked a slot with ID $slot_id for ".$user['first_name'].'!');
         }
