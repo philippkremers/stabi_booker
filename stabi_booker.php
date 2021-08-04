@@ -8,7 +8,7 @@
 
 $users = array(
     array("first_name" => "Beau", "second_name" => "Brummell", "email" => "beau.brummell@oriel.ox.ac.uk", "stabi_user_number" => "1234567", "config_only_mornings" => true),
-    array("first_name" => "Margaret", "second_name" => "Brummell", "email" => "margaret.brummell@oriel.ox.ac.uk", "stabi_user_number" => "7654321", "config_only_mornings" => false)
+    array("first_name" => "Ottilie", "second_name" => "Baader", "email" => "ottilie.baader1@gmail.com", "stabi_user_number" => "7654321", "config_only_mornings" => false)
 );
 
 exit; // FINALLY, REMOVE THIS LINE AFTER YOU ADJUSTED THE PARAMETERS 
@@ -21,6 +21,9 @@ function new_matching_slot_IDs($source_landing_page, $config_only_mornings) {
 
     // select raw HTML string of each bookable slot
     $relevant_part_source_landing_page = end(explode('rel="">Allgemeiner Lesesaal - Haus Unter den Linden</a></h3>', $source_landing_page));
+    $relevant_part_source_landing_page = explode('rel="">Zeitungslesesaal - Haus Unter den Linden</a></h3>', $relevant_part_source_landing_page);
+    $relevant_part_source_landing_page = $relevant_part_source_landing_page[0];
+
     $raw_html_of_slots = explode('" class="intern">anmelden</a> (noch ', $relevant_part_source_landing_page);
     array_pop($raw_html_of_slots);
 
@@ -42,7 +45,7 @@ function new_matching_slot_IDs($source_landing_page, $config_only_mornings) {
 
         // if no preference mismatch was detected, add ID number of the available slot returned array
         if ($skip_ID === false) {
-            array_push($matching_IDs, end(explode('vor-ort/oeffnungszeiten/terminbuchung/lesesaele-haus-potsdamer-strasse/buchungsformular-lesesaal/?tx_sbbknowledgeworkshop_pi1%5Binput_event%5D=', $slot_datetime_wrapper)));
+            array_push($matching_IDs, end(explode('vor-ort/oeffnungszeiten/terminbuchung/lesesaal-haus-unter-den-linden/buchungsformular-udl-lesesaal/?tx_sbbknowledgeworkshop_pi1%5Binput_event%5D=', $slot_datetime_wrapper)));
         }
     }
 
@@ -52,7 +55,7 @@ function new_matching_slot_IDs($source_landing_page, $config_only_mornings) {
 // function to book Leesesaal slot for a specific person 
 function book_slot($id, $first_name, $second_name, $email, $stabi_user_number) {
     $curl_session = curl_init();
-    curl_setopt($curl_session, CURLOPT_URL, "https://staatsbibliothek-berlin.de/vor-ort/oeffnungszeiten/terminbuchung/terminbuchung-lesesaal/buchungsformular-lesesaal/");
+    curl_setopt($curl_session, CURLOPT_URL, "https://staatsbibliothek-berlin.de/vor-ort/oeffnungszeiten/terminbuchung/lesesaal-haus-unter-den-linden/buchungsformular-udl-lesesaal/");
     curl_setopt($curl_session, CURLOPT_POST, 1);
     curl_setopt($curl_session, CURLOPT_POSTFIELDS, "no_cache=1&tx_sbbknowledgeworkshop_pi1%5Binput_comments%5D=&tx_sbbknowledgeworkshop_pi1%5Binput_data%5D=on&tx_sbbknowledgeworkshop_pi1%5Binput_email%5D=".$email."&tx_sbbknowledgeworkshop_pi1%5Binput_event%5D=".$id."&tx_sbbknowledgeworkshop_pi1%5Binput_gender%5D=&tx_sbbknowledgeworkshop_pi1%5Binput_init%5D=1&tx_sbbknowledgeworkshop_pi1%5Binput_institution%5D=".$stabi_user_number."&tx_sbbknowledgeworkshop_pi1%5Binput_name%5D=".$first_name."&tx_sbbknowledgeworkshop_pi1%5Binput_phone%5D=&tx_sbbknowledgeworkshop_pi1%5Binput_submit%5D=Absenden&tx_sbbknowledgeworkshop_pi1%5Binput_surname%5D=".$second_name."&tx_sbbknowledgeworkshop_pi1%5Binput_title%5D=1");
     curl_setopt($curl_session, CURLOPT_RETURNTRANSFER, true);
@@ -82,16 +85,19 @@ function add_to_logfile($new_line) {
     }
 
     $current_logfile = file_get_contents('logfile.txt');
-    file_put_contents("logfile.txt", $current_logfile.$new_line."\n");
+    file_put_contents("logfile.txt", $current_logfile.$new_line);
 }
 
 // main program starts
 
-// get entire source code of Staatsbibliothek page
-$source_landing_page = file_get_contents('https://staatsbibliothek-berlin.de/vor-ort/oeffnungszeiten/terminbuchung/');
-
 // loop through all users
 foreach ($users as $user) {
+
+    // get entire source code of Staatsbibliothek page
+    $source_landing_page = file_get_contents('https://staatsbibliothek-berlin.de/vor-ort/oeffnungszeiten/terminbuchung/');
+
+
+    echo 'USER: '.$user['stabi_user_number']."\n";
 
     // create new past booking log for user if necessary
     if (!file_exists('past_bookings_'.$user['stabi_user_number'].'.txt')) {
@@ -100,14 +106,18 @@ foreach ($users as $user) {
 
     // loop through all slots that fit the preferences
     $slot_ids = new_matching_slot_IDs($source_landing_page, $user['config_only_mornings']);
-    var_dump($slot_ids);
+    
     foreach($slot_ids as $slot_id) {
-
+        echo "MATCHING SLOT ID: $slot_id, BOOKED ALREADY? ", (is_booked_already($slot_id, $user['stabi_user_number']) ? 'Yes' : 'No')."\n";
+        
         // check if the bookable slot is already booked
         if(!is_booked_already($slot_id, $user['stabi_user_number'])) {
+            echo "TRYING TO BOOK...\n";
             $server_output = book_slot($slot_id, $user['first_name'], $user['second_name'], $user['email'], $user['stabi_user_number']);
+            
+            // add booking to logfiles
             add_slot_ID_to_record($slot_id, $user['stabi_user_number']);
-            add_to_logfile(date('Y-m-d H:i:s').": I booked a slot with ID $slot_id for ".$user['first_name'].'!');
+            add_to_logfile(date('Y-m-d H:i:s').": I tried to book a slot with ID $slot_id for ".$user['first_name']."!\n\n=================\nSERVER RESPONSE BEGIN\n\n".$server_output."\n\nSERVER RESPONSE END\n===============\n\n");
         }
     }
 }
