@@ -20,7 +20,8 @@ function new_matching_slot_IDs($source_landing_page, $config_only_mornings) {
     $matching_IDs = array();
 
     // select raw HTML string of each bookable slot
-    $relevant_part_source_landing_page = end(explode('rel="">Allgemeiner Lesesaal - Haus Unter den Linden</a></h3>', $source_landing_page));
+    $allg_lesesaal = explode('rel="">Allgemeiner Lesesaal - Haus Unter den Linden</a></h3>', $source_landing_page);
+    $relevant_part_source_landing_page = end($allg_lesesaal);
     $relevant_part_source_landing_page = explode('rel="">Zeitungslesesaal - Haus Unter den Linden</a></h3>', $relevant_part_source_landing_page);
     $relevant_part_source_landing_page = $relevant_part_source_landing_page[0];
 
